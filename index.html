@@ -496,7 +496,7 @@ function updateTransferFunction(gl, transferFunction) {
   // relatively simple ramp with the first 50 values being set to 0 to reduce the noise in
   // the image.  The remainder of the ramp is just using different angles for the color
   // components
-  /* const cutoff = 50;
+  /*const cutoff = 50;
 
   for (let i = 0; i < cutoff * 4; i += 4) {
     // Set RGBA all to 0
@@ -515,10 +515,8 @@ function updateTransferFunction(gl, transferFunction) {
     data[i + 1] = it;
     data[i + 2] = 3 * it;
     data[i + 3] = it;
-  } */
-
-
-
+  } 
+*/
   /// End of the provided transfer function
   ////////////////////////////////////////////////////////////////////////////////////////
 
@@ -532,8 +530,64 @@ function updateTransferFunction(gl, transferFunction) {
   
   */
 
+  // Get slider input values
+  const a = document.getElementById("a").value;
+  const b = document.getElementById("b").value;
+  const cd = document.getElementById("cd").value;
+  const height = document.getElementById("height").value / 255; //Opacity, normalised
 
+  //Get colour input values
+  const R = document.getElementById("R").value;
+  const G = document.getElementById("G").value;
+  const B = document.getElementById("B").value;
 
+  const fadeLength = ((b-a)-cd)/2; //Length of fading area
+  const c = a + fadeLength //Position of c
+  const d = c+cd; //Position of d
+  const step = height/fadeLength; //Step value for fade area
+
+  // Set all RGBA in interval [0,a] to 0
+  for(let i = 0; i < a*4; i +=4){
+    data[i] = 0;
+    data[i + 1] = 0;
+    data[i + 2] = 0;
+    data[i + 3] = 0;
+  }
+
+  //Fade from 0 to colour in interval [a,c]
+  var op = 0;
+  for(let i = a*4; i < c*4; i+= 4) {
+    data[i] = R;
+    data[i + 1] = G;
+    data[i + 2] = B;
+    data[i + 3] = op;
+    op += step;
+  }
+
+  //Constant colour in interval [c,d] 
+  for(let i = c*4; i < d*4; i+= 4) {
+    data[i] = R;
+    data[i + 1] = G;
+    data[i + 2] = B;
+    data[i + 3] = height;
+  }
+
+  //Fade from colour to 0 in interval [d,b]
+  op = height;
+  for(let i = d*4; i < b*4; i+= 4) {
+    data[i] = R;
+    data[i + 1] = G;
+    data[i + 2] = B;
+    data[i + 3] = op;
+    op -= step;
+  }
+
+  for (let i = d*4; i < 256 * 4; i += 4) {
+    data[i] = 0;
+    data[i + 1] = 0;
+    data[i + 2] = 0;
+    data[i + 3] = 0;
+  }
 
   // Upload the new data to the texture
   console.log(117, "Updating the transfer function texture");
@@ -892,9 +946,9 @@ async function main() {
       // The range of the dataset is [0, 4096), so we need to convert that into
       // [0, 256) manually
       convertedData[i] = typedData[i] / 4096.0 * 256.0
-     
     }
-    console.log(convertedData);
+
+    //console.log(convertedData);
 
     // The volume size also comes from the available meta data for the pig.raw
     // if you want to have a look at the metadata, the pig.dat contains that
@@ -1022,7 +1076,20 @@ function triggerRendering() {
 // FORGET to call this function if you are updating the transfer function or your changes
 // won't be visible.
 function triggerTransferFunctionUpdate() {
+  var widthT = document.getElementById("cd").value;
+  const widthB = document.getElementById("b").value - document.getElementById("a").value;
+
+  if(!widgetPeak(widthT, widthb)){
+    //Skriv ut att blabla
+    widthT = widthB;
+  }
   TransferFunctionIsDirty = true;
+}
+
+/* egen funktion */
+function widgetPeak(widthT, widthB) {
+  if(widthT > widthB){return false;}
+  return true;
 }
 
 // Signals an error to the user
@@ -1063,6 +1130,24 @@ function postError(msg) {
       <div><input type="radio" name="debug-output" value="transfer" onchange="triggerRendering();">Transfer Function</div>
       <div><input type="radio" name="debug-output" value="slice" onchange="triggerRendering();">Volume Slice</div>
       <div><input type="radio" name="debug-output" value="slice-transfer" onchange="triggerRendering();">Volume Slice with transfer function</div>
+  </p>
+
+  <canvas id="myChart" width="800" height="400"></canvas>
+
+  <p>
+    Transfer function control
+    <div>a<input type="range" min="0" max="254" value="20" class="slider" id="a" oninput="triggerTransferFunctionUpdate()"></div>
+    <div>b<input type="range" min="1" max="255" value="50" class="slider" id="b" oninput="triggerTransferFunctionUpdate()"></div>
+    c & d:
+    <div>width<input type="range" min="1" max="254" value="10" class="slider" id="cd" oninput="triggerTransferFunctionUpdate()"></div>
+    <div>height<input type="range" min="0" max="255" value="255" class="slider" id="height" oninput="triggerTransferFunctionUpdate()"></div>
+  </p>
+
+  <p>
+    Colour:
+    <input type="number" id="R" min="0" max="1" step="any" oninput="triggerTransferFunctionUpdate()" value="0">Red</input> <!--Transfer function not updating-->
+    <input type="number" id="G" min="0" max="1" step="any" oninput="triggerTransferFunctionUpdate()" value="0">Green</input>
+    <input type="number" id="B"  min="0" max="1" step="any" oninput="triggerTransferFunctionUpdate()" value="1">Blue</input>
   </p>
 
   <!--
