@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+Copyright 2013, 2017, Karljohan Lundin Palmerius
+
+This is a stubb for laborations on multi-modal display
+systems in the VR laboratory. It will disable the X3D
+navigation to allow for viewpoint calibration and tracking,
+and load libraries commonly used in the VR laboratory.
+
+-->
+<Group>
+  
+    <PythonScript url="urn:candy:python/CorrectViewpoint.py"/>
+	<PythonScript url="urn:candy:python/AutoLoadSO.py"/>
+    <!--<Inline url="urn:candy:x3d/view-untracked-stereo.x3d"/>
+	<Inline url="urn:candy:x3d/view-untracked-mono.x3d"/>
+    <Inline url="urn:candy:x3d/view-head-tracked-stereo.x3d"/>
+    <Inline url="urn:candy:x3d/view-head-tracked-mono.x3d"/>-->
+	
+	<!-- 6. Haptics (comment out when working with haptic pen) -->
+	<Inline url="urn:candy:x3d/model_FeedbackTip.x3d"/>
+	
+	<PointLight location="0.6 0.6 0.6"/>
+	
+	<!-- Viewpoints -->
+    <SMViewpoint screenLowerLeft="-0.26 -0.165 0" 
+                screenUpperRight="0.26 0.165 0" 
+                position= "1 0 1" />
+	<SMViewpoint screenLowerLeft="-0.26 -0.165 0"
+				screenUpperRight="0.26 0.165 0"
+				position= "-1 0 1" />
+	<SMViewpoint screenLowerLeft="-0.26 -0.165 0"
+				screenUpperRight="0.26 0.165 0"
+				position= "1 1 1" />
+      
+      <MatrixTransform DEF="TR">
+            <Transform scale="0.2 0.2 0.1" rotation="0 1 0 0">           
+              <Transform translation="-0.2 -0.2 0.3">
+                <Shape> <!--ingen skugga på benen wtf & skugga under golvet wtf-->
+                  <Appearance DEF="myShadow" shadow="1">
+                    <Material DEF="myM" diffuseColor="1 0 0"/>
+                    <SmoothSurface stiffness="0.4"/>
+                  </Appearance>
+                  <Box DEF="CHAIR" size="0.05 0.4 0.05"/>
+                </Shape>
+              </Transform>   
+
+              <Transform translation="0.2 -0.2 0.3">
+                <Shape>
+                  <Appearance USE="myShadow">
+                    <Material USE="myM" diffuseColor="0 1 0"/>
+                    <SmoothSurface stiffness="0.4"/>
+                  </Appearance>
+                  <Box USE="CHAIR"/>
+                </Shape>
+              </Transform>
+
+              <Transform translation="-0.2 -0.2 -0.3">
+                <Shape>
+                  <Appearance USE="myShadow">
+                    <Material USE="myM" diffuseColor="0 0 1"/>
+                    <SmoothSurface stiffness="0.4"/>
+                  </Appearance>
+                  <Box USE="CHAIR"/>
+                </Shape>
+              </Transform>   
+
+              <Transform translation="0.2 -0.2 -0.3">
+                <Shape>
+                  <Appearance USE="myShadow" >
+                    <Material USE="myM" diffuseColor="1 1 0"/>
+                    <SmoothSurface stiffness="0.4"/>
+                  </Appearance>
+                  <Box USE="CHAIR"/>
+                </Shape>
+              </Transform>
+
+              <Transform translation="0 0 0">
+                <Shape>
+                  <Appearance USE="myShadow" >
+                    <Material USE="myM" diffuseColor="0.5 1 0.5"/>
+                    <SmoothSurface stiffness="0.4"/>
+                  </Appearance>
+                  <Box size="0.5 0.03 0.8"/>
+                </Shape>
+              </Transform>
+
+              <Transform translation="0 0.25 -0.3">
+                <Shape>
+                  <Appearance USE="myShadow">
+                    <Material USE="myM" diffuseColor="0.3 6 0.9"/>
+                    <SmoothSurface stiffness="0.4"/>
+                  </Appearance>
+                  <Box DEF="RYGG" size="0.5 0.5 0.05"/>
+                </Shape>
+              </Transform>
+
+				<!-- lil box -->
+			<Transform translation="0 0.5 0">
+				<Shape>
+					<Appearance>
+						<Material diffuseColor="0 0 0" specularColor="1 1 1"/>
+						<FrictionalSurface useRelativeValues="false" stiffness="1200" damping="5" staticFriction="1" dynamicFriction="0.5"/>
+					</Appearance>
+					<Box size="0.2 0.2 0.2"/>
+				</Shape>
+			</Transform>
+
+				<!--Background-->
+			<Transform translation="0 0 -1.5">
+				<Shape>
+					<Appearance>
+						<Material diffuseColor="0 0.2 0.25"/>
+					<ImageTexture url="./barbie.png"/>
+					</Appearance>
+					<Box DEF="WALL" size="3 2 0.01"/>
+				</Shape>
+			</Transform>
+			
+			<Transform translation="0 -0.4 0">
+				<Shape>
+					<Appearance>
+						<Material diffuseColor="0 0.25 0.25"/>
+					<ImageTexture url="./barbie.png"/>
+					<SmoothSurface stiffness="0.4"/>
+						<FrictionalSurface useRelativeValues="false" stiffness="1500" damping="5"/>
+					</Appearance>
+					<Box DEF="FLOOR" size="3 0.05 3"/>
+				</Shape>
+			</Transform>
+			
+        </Transform>
+      </MatrixTransform>
+
+
+
+    <IMPORT inlineDEF="H3D_EXPORTS" exportedDEF="HDEV" AS="HDEV"/>
+
+        <!-- Manual translation -->
+    <PythonScript
+        DEF="MT"
+        url="urn:candy:python/ManualTranslation.py">
+	    <Transform USE="TR" containerField="references"/>
+    </PythonScript>
+	
+    <ROUTE fromNode="HDEV" fromField="mainButton"
+		    toNode="MT" toField="button" />
+    <ROUTE fromNode="HDEV" fromField="trackerPosition"
+		    toNode="MT" toField="position"/>
+
+	    <!-- Manual rotation -->
+    <PythonScript
+	    DEF="MR"
+	    url="urn:candy:python/ManualRotation.py">
+	    <Transform USE="TR" containerField="references"/>
+    </PythonScript>
+
+    <ROUTE fromNode="HDEV" fromField="mainButton"
+            toNode="MR" toField="button" />
+    <ROUTE fromNode="HDEV" fromField="trackerPosition"
+		    toNode="MR" toField="position"/>
+    <ROUTE fromNode="HDEV" fromField="trackerOrientation"
+	        toNode="MR" toField="orientation" />
+
+        <!-- Change colour of chair on touch -->
+	<PythonScript DEF="PS" url="ColorRandomizer.py"/>
+	<PythonScript DEF="PS2" url="urn:candy:python/MFtoSFBool.py" />
+	
+    <ROUTE fromNode="CHAIR" fromField="isTouched"
+            toNode="PS2" toField="value" />
+    <ROUTE fromNode="PS2" fromField="value"
+            toNode="PS" toField="color" />
+    <ROUTE fromNode="PS" fromField="color"
+            toNode="myM" toField="diffuseColor"/>
+	
+	    <!-- Sound -->
+
+	<PythonScript DEF="MFSF1" url="urn:candy:python/MFtoSFBool.py" />
+	<PythonScript DEF="MFSF2" url="urn:candy:python/MFtoSFBool.py" />
+	
+	<VRSound location="0 2 0" spatialize="true"> <!-- location test in VR Lab-->
+		<AudioClip DEF="AUDIO1" url="./bruh.wav" />
+		<ReverbSoundEffect parametersPreset="PSYCHOTIC"/>
+	</VRSound>
+
+	<VRSound location="0 0 -1" spatialize="true">
+		<AudioClip DEF="AUDIO2" url="./toy.wav" /> <!--Ljudfilen låter i vid start av programmet-->
+		<ReverbSoundEffect parametersPreset="UNDERWATER"/> <!-- Task 15 - use difference distances in VR lab-->
+	</VRSound>
+
+    <TimeTrigger DEF= "T1"/>
+    <TimeTrigger DEF= "T2"/>
+    <BooleanFilter DEF= "BF1"/>
+    <BooleanFilter DEF= "BF2"/>
+
+	<ROUTE fromNode="CHAIR" fromField="isTouched"
+		   toNode="MFSF1" toField="value"/>
+	<ROUTE fromNode="MFSF1" fromField="value"
+	        toNode="BF1" toField="set_boolean"/>
+	<ROUTE fromNode="BF1" fromField="inputTrue"
+		   toNode="T1" toField="set_boolean"/>
+	<ROUTE fromNode="T1" fromField="triggerTime"
+	       toNode="AUDIO1" toField="startTime"/>
+
+	<ROUTE fromNode="FLOOR" fromField="isTouched"
+	   toNode="MFSF2" toField="value"/>
+	<ROUTE fromNode="MFSF2" fromField="value"
+	        toNode="BF2" toField="set_boolean"/>
+	<ROUTE fromNode="BF2" fromField="inputTrue"
+		   toNode="T2" toField="set_boolean"/>
+	<ROUTE fromNode="T2" fromField="triggerTime"
+	       toNode="AUDIO2" toField="startTime"/>
+	
+
+</Group>
