@@ -530,16 +530,37 @@
     
     */
 
-    //We have variable widgetCount that determines how many widgets we have
+    /*
 
-    //Initialize slider & color input ID with widget #1 IDs
-    let aCurr = "a";
-    let bCurr = "b"
-    let cdCurr = "cd"
-    let heightCurr = "height";
-    let rCurr = "R";
-    let gCurr = "G";
-    let blCurr = "B";
+      We are creating a widget based solution
+
+      Opacity
+      ^
+      |                c__d
+      |                |  |
+      |               |    |
+      |    c_____d   |      |
+      |    /     \  /        \        c_d
+      |   /  red  \/   white  \       / \  yellow
+      | a/      a/ \b           \b  a/   \b
+      |--------------------------------------------> Value
+
+      The slope determines fading
+      The height of the widgets determines the opacity
+      The position of a & b can be changed using slider
+      The width of c-d can be changed using slider
+      The colour value can be changed using 3 inputs for R,G and B values
+      The opacity can be changed using slider
+    */
+
+    //Initialize slider & color input ID with widget #1's IDs
+    let aCurr = "a1";
+    let bCurr = "b1"
+    let cdCurr = "cd1"
+    let heightCurr = "height1";
+    let rCurr = "R1";
+    let gCurr = "G1";
+    let blCurr = "B1";
 
     //använd curr = curr.slice(0,-1) + widgetCount när man ska uppd curr values till nästa widget index
 
@@ -547,23 +568,25 @@
     let a = parseInt(document.getElementById(aCurr).value);
     let b = parseInt(document.getElementById(bCurr).value);
     let cd = parseInt(document.getElementById(cdCurr).value);
-    let height = parseInt(document.getElementById(heightCurr).value) / 255; //Opacity, normalised
-
-    console.log("a:" + a);
-    console.log("b:" + b);
-    console.log("cd width:" + cd);
-
-    //BROBLEM transfer function fuckar
+    let height = parseInt(document.getElementById(heightCurr).value);
 
     //Get colour input values
     let R = parseInt(document.getElementById(rCurr).value);
     let G = parseInt(document.getElementById(gCurr).value);
     let B = parseInt(document.getElementById(blCurr).value);
 
-    let fadeLength = ((b - a) - cd) / 2; //Length of fading area
+    let fadeLength = Math.round(((b - a) - cd) / 2); //Length of fading area, round so we get int values for c&d
     let c = a + fadeLength //Position of c
-    let d = c + cd; //Position of d
+    let d = b - fadeLength; //Position of d
     let step = height / fadeLength; //Step value for fade area
+
+    // Initialize all RGBA to 0
+    for (let i = 0; i < 255 * 4; i += 4) {
+      data[i] = 0;
+      data[i + 1] = 0;
+      data[i + 2] = 0;
+      data[i + 3] = 0;
+    }
 
     for(let i = 0; i < widgetCount; i++) {
       
@@ -571,41 +594,8 @@
 
       //Get colour input values
 
-
-
       //uppdt curr values
       //curr = curr.slice(0,-1) + widgetCount; (tar bort sista värdet om de är)
-    }
-/*
-    // Get slider input values
-    const a = document.getElementById("a").value;
-    const b = document.getElementById("b").value;
-    const cd = document.getElementById("cd").value;
-    const height = document.getElementById("height").value / 255; //Opacity, normalised
-
-    console.log("a:" + a);
-    console.log("b:" + b);
-    console.log("cd width:" + cd);
-
-
-    //Get colour input values
-    const R = document.getElementById("R").value;
-    const G = document.getElementById("G").value;
-    const B = document.getElementById("B").value;
-
-    const fadeLength = ((b - a) - cd) / 2; //Length of fading area
-    const c = a + fadeLength //Position of c
-    const d = c + cd; //Position of d
-    const step = height / fadeLength; //Step value for fade area
-
-    */
-
-    // Set all RGBA in interval [0,a] to 0
-    for (let i = 0; i < a * 4; i += 4) {
-      data[i] = 0;
-      data[i + 1] = 0;
-      data[i + 2] = 0;
-      data[i + 3] = 0;
     }
 
     //Fade from 0 to colour in interval [a,c]
@@ -634,13 +624,6 @@
       data[i + 2] = B;
       data[i + 3] = op;
       op -= step;
-    }
-
-    for (let i = d * 4; i < 256 * 4; i += 4) {
-      data[i] = 0;
-      data[i + 1] = 0;
-      data[i + 2] = 0;
-      data[i + 3] = 0;
     }
 
     // Upload the new data to the texture
@@ -1124,22 +1107,19 @@
   // FORGET to call this function if you are updating the transfer function or your changes
   // won't be visible.
   function triggerTransferFunctionUpdate() {
-    var widthT = document.getElementById("cd").value;
-    const widthB = document.getElementById("b").value - document.getElementById("a").value;
+    const elementId = event.target.id;
+    const widgetNr = elementId.slice(-1);
+    var widthT = document.getElementById("cd" + widgetNr ).value;
+    const widthB = document.getElementById("b" + widgetNr).value - document.getElementById("a" + widgetNr).value;
 
+    document.getElementById("errorMessage").innerHTML = "";
 
-    if (!widgetPeak(widthT, widthB)) {
-      widthT = widthB;
-    } else {
-
+    if (widthT > widthB){
+      //write out error message to web page that widthT mus be smaller than widthB
+      document.getElementById("errorMessage").innerHTML = "Error: c-d width must be smaller for Widget #" + widgetNr;
     }
-    TransferFunctionIsDirty = true;
-  }
 
-  /* egen funktion */
-  function widgetPeak(widthT, widthB) {
-    if (widthT > widthB) { return false; }
-    return true;
+    TransferFunctionIsDirty = true;
   }
 
   // Signals an error to the user
@@ -1148,105 +1128,96 @@
       document.getElementById("error").innerHTML + "<p>" + msg + "</p>";
   }
 
-  //Widgets
-
+  //Widgets (egen fkn)
   let widgetCount = 1;
 
   function addNewWidget() {
 
     widgetCount++;
 
-    // Clone the original widget container and its contents
-    const widgetContainer = document.getElementById('widgetContainer');
-    const originalWidget = document.querySelector('.widget');
+    // Clone original widget container
+    const widgetContainer = document.getElementById("widgetContainer");
+    const originalWidget = document.querySelector(".widget");
     const newWidget = originalWidget.cloneNode(true);
 
-    // Set a new ID for the new widget
-    newWidget.class = "widget";
-
-    // Update the IDs of input elements within the new widget
-    const inputElements = newWidget.querySelectorAll('input');
-    inputElements.forEach(input => {
-        // Append the widget count to the current ID
-        input.id = input.id + widgetCount;
+    // Set new unique ID values for the elements in our new widget
+    const elements = newWidget.querySelectorAll("*");
+    elements.forEach(element => {
+        element.id = element.id.slice(0,-1) + widgetCount; //Slice the last element of Id (the widgetCount nr) and append Id new widgetCount nr
     });
 
     // Append the new widget to the container
     widgetContainer.appendChild(newWidget);
+
+    //Update name of new widget
+    document.getElementById("name" + widgetCount).innerHTML = "Widget #" + widgetCount;
   }
 
-</script>
 
+</script>
 
 <body onload="main();">
   <div style="padding: 10px;">
     <div style="width: 50%; height: 150px; float: left;">
       <p id="error"></p>
       <canvas id="glCanvas" width="640" height="480"></canvas>
+      <h3 id="errorMessage" style="color:red"></h3> <!--Used by triggerTransferFunctionUpdate() to print out error message-->
       <p>
         Rendering parameters
-      <div>Step size: <input type="range" min="10" max="10000" value="1000" class="slider" id="stepSize"
-          oninput="triggerRendering();"> </div>
-      <div>
-        <div>Compositing method:</div>
-        <div><input type="radio" name="compositing" value="ftb" onchange="triggerRendering();" checked>Front-to-back
+        <div>Step size: <input type="range" min="10" max="10000" value="1000" class="slider" id="stepSize" oninput="triggerRendering();"> </div>
+        <div>
+          <div>Compositing method:</div>
+          <div><input type="radio" name="compositing" value="ftb" onchange="triggerRendering();" checked>Front-to-back</div>
+          <div><input type="radio" name="compositing" value="fhp" onchange="triggerRendering();">First hit-point</div>
+          <div><input type="radio" name="compositing" value="mip" onchange="triggerRendering();">Maximum-intensity projection</div>
         </div>
-        <div><input type="radio" name="compositing" value="fhp" onchange="triggerRendering();">First hit-point</div>
-        <div><input type="radio" name="compositing" value="mip" onchange="triggerRendering();">Maximum-intensity
-          projection</div>
-      </div>
       </p>
+
       <p>
         Camera
-      <div> r: <input type="range" min="0" max="100" value="50" class="slider" id="camera-r"
-          oninput="triggerRendering();"></div>
-      <div> phi: <input type="range" min="0" max="360" value="35" class="slider" id="camera-phi"
-          oninput="triggerRendering();"></div>
-      <div> theta: <input type="range" min="1" max="180" value="65" class="slider" id="camera-theta"
-          oninput="triggerRendering();"></div>
+        <div> r: <input type="range" min="0" max="100" value="50" class="slider" id="camera-r" oninput="triggerRendering();"></div>
+        <div> phi: <input type="range" min="0" max="360" value="35" class="slider" id="camera-phi" oninput="triggerRendering();"></div>
+        <div> theta: <input type="range" min="1" max="180" value="65" class="slider" id="camera-theta"  oninput="triggerRendering();"></div>
       </p>
+       
       <p>
         Debugging
       <div>Rendering output:</div>
-      <div><input type="radio" name="debug-output" value="volume" onchange="triggerRendering();" checked>Volume
-        Rendering</div>
-      <div><input type="radio" name="debug-output" value="entry" onchange="triggerRendering();">Entry Points</div>
-      <div><input type="radio" name="debug-output" value="exit" onchange="triggerRendering();">Exit Points</div>
-      <div><input type="radio" name="debug-output" value="direction" onchange="triggerRendering();">Ray direction</div>
-      <div><input type="radio" name="debug-output" value="transfer" onchange="triggerRendering();">Transfer Function
-      </div>
-      <div><input type="radio" name="debug-output" value="slice" onchange="triggerRendering();">Volume Slice</div>
-      <div><input type="radio" name="debug-output" value="slice-transfer" onchange="triggerRendering();">Volume Slice
-        with transfer function</div>
+        <div><input type="radio" name="debug-output" value="volume" onchange="triggerRendering();" checked>Volume Rendering</div>
+        <div><input type="radio" name="debug-output" value="entry" onchange="triggerRendering();">Entry Points</div>
+        <div><input type="radio" name="debug-output" value="exit" onchange="triggerRendering();">Exit Points</div>
+        <div><input type="radio" name="debug-output" value="direction" onchange="triggerRendering();">Ray direction</div>
+        <div><input type="radio" name="debug-output" value="transfer" onchange="triggerRendering();">Transfer Function
+        </div>
+        <div><input type="radio" name="debug-output" value="slice" onchange="triggerRendering();">Volume Slice</div>
+        <div><input type="radio" name="debug-output" value="slice-transfer" onchange="triggerRendering();">Volume Slice with transfer function</div>
       </p>
     </div>
+
     <div id="widgetContainer" style="width: 50%; height: 150px; float: right;">
+      
       <h2>Transfer function control</h2>
       <button style=" padding: 5px" onclick="addNewWidget()">Add Widget</button>
+      
       <div class="widget">
-        <h3>Widget</h3>    
-        <div>a<input type="range" min="0" max="254" value="20" class="slider" id="a"
-            oninput="triggerTransferFunctionUpdate()"></div>
-        <div>b<input type="range" min="1" max="255" value="50" class="slider" id="b"
-            oninput="triggerTransferFunctionUpdate()"></div>
-        c & d:
-        <div>width<input type="range" min="1" max="254" value="10" class="slider" id="cd"
-            oninput="triggerTransferFunctionUpdate()"></div>
-        <div>height<input type="range" min="0" max="255" value="255" class="slider" id="height"
-            oninput="triggerTransferFunctionUpdate()"></div>
-        </br>
-          Colour:</br>
-            Red
-          <input style="width: 10%" type="number" id="R" min="0" max="255" step="any" oninput="triggerTransferFunctionUpdate()"
-            value="0"></input>
-            Green
-          <input style="width: 10%" type="number" id="G" min="0" max="255" step="any" oninput="triggerTransferFunctionUpdate()"
-            value="0"></input>
-            Blue
-          <input style="width: 10%" type="number" id="B" min="0" max="255" step="any" oninput="triggerTransferFunctionUpdate()"
-            value="255"></input>
-      </div>
+        
+        <h3 id="name1">Widget #1</h3>   
+        
+        <div>Position of a: <input type="range" min="0" max="255" value="20" class="slider" id="a1" oninput="triggerTransferFunctionUpdate()"></div>
+        <div>Position of b:<input type="range" min="0" max="255" value="50" class="slider" id="b1" oninput="triggerTransferFunctionUpdate()"></div>
+        
+        
+        <div>Width of c-d<input type="range" min="1" max="255" value="10" class="slider" id="cd1" oninput="triggerTransferFunctionUpdate()"></div>
+        <div>Widget Opacity<input type="range" min="0" max="255" value="50" class="slider" id="height1" oninput="triggerTransferFunctionUpdate()"></div>
+        
+      </br>
 
+          Widget Colour:</br>
+            Red <input style="width: 10%" type="number" id="R1" min="0" max="255" step="any" oninput="triggerTransferFunctionUpdate()" value="0"></input>
+            Green <input style="width: 10%" type="number" id="G1" min="0" max="255" step="any" oninput="triggerTransferFunctionUpdate()" value="0"></input>
+            Blue <input style="width: 10%" type="number" id="B1" min="0" max="255" step="any" oninput="triggerTransferFunctionUpdate()" value="255"></input>
+      
+      </div>
     </div>
   </div>
   <!--
