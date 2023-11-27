@@ -190,9 +190,7 @@
   // WebGL2 requires specifying the floating point precision once per program object
   precision highp float;
   precision highp sampler2D;
-  precision highp sampler3D;
-
-  
+  precision highp sampler3D;  
   
   #line 197 // This sets the line numbers to match with the line numbers in this file
   uniform sampler2D entryPoints;  // The texture that holds the entry points
@@ -488,47 +486,8 @@
     // which get mapped to [0, 1] by OpenGL
     let data = new Uint8Array(256 * 4);
 
-
-    ////////////////////////////////////////////////////////////////////////////////////////
-    /// Beginning of the provided transfer function 
-
-    // The provided transfer function that you'll replace with your own solution is a
-    // relatively simple ramp with the first 50 values being set to 0 to reduce the noise in
-    // the image.  The remainder of the ramp is just using different angles for the color
-    // components
-    /*const cutoff = 50;
-  
-    for (let i = 0; i < cutoff * 4; i += 4) {
-      // Set RGBA all to 0
-      data[i] = 0;
-      data[i + 1] = 0;
-      data[i + 2] = 0;
-      data[i + 3] = 0;
-    }
-  
-    // For now, just create a linear ramp from 0 to 1. We start at the cutoff value and fill
-    // the rest of the array
-    for (let i = cutoff * 4; i < 256 * 4; i += 4) {
-      // convert i into a value [0, 256] and set it
-      const it = i / 4;
-      data[i] = 2 * it;
-      data[i + 1] = it;
-      data[i + 2] = 3 * it;
-      data[i + 3] = it;
-    } 
-  */
-    /// End of the provided transfer function
-    ////////////////////////////////////////////////////////////////////////////////////////
-
     // @TODO:  Replace the transfer function specification above with your own transfer
     //         function editor result
-
-
-    /* To do: 
-            1. Visualize histogram of volume over 
-            2. 
-    
-    */
 
     /*
 
@@ -553,32 +512,8 @@
       The opacity can be changed using slider
     */
 
-    //Initialize slider & color input ID with widget #1's IDs
-    let aCurr = "a1";
-    let bCurr = "b1"
-    let cdCurr = "cd1"
-    let heightCurr = "height1";
-    let rCurr = "R1";
-    let gCurr = "G1";
-    let blCurr = "B1";
-
-    //använd curr = curr.slice(0,-1) + widgetCount när man ska uppd curr values till nästa widget index
-
     // Get slider input values
-    let a = parseInt(document.getElementById(aCurr).value);
-    let b = parseInt(document.getElementById(bCurr).value);
-    let cd = parseInt(document.getElementById(cdCurr).value);
-    let height = parseInt(document.getElementById(heightCurr).value);
-
-    //Get colour input values
-    let R = parseInt(document.getElementById(rCurr).value);
-    let G = parseInt(document.getElementById(gCurr).value);
-    let B = parseInt(document.getElementById(blCurr).value);
-
-    let fadeLength = Math.round(((b - a) - cd) / 2); //Length of fading area, round so we get int values for c&d
-    let c = a + fadeLength //Position of c
-    let d = b - fadeLength; //Position of d
-    let step = height / fadeLength; //Step value for fade area
+    let a, b, cd, height, R, G, B, fadeLength, c, d, step;
 
     // Initialize all RGBA to 0
     for (let i = 0; i < 255 * 4; i += 4) {
@@ -588,42 +523,52 @@
       data[i + 3] = 0;
     }
 
-    for(let i = 0; i < widgetCount; i++) {
+    for(let j = 1; j <= widgetCount; j++) {
       
       //Get slider input values
+      a = parseInt(document.getElementById("a" + j).value);
+      b = parseInt(document.getElementById("b" + j).value);
+      cd = parseInt(document.getElementById("cd" + j).value);
+      height = parseInt(document.getElementById("height" + j).value);
 
       //Get colour input values
+      R = parseInt(document.getElementById("R" + j).value);
+      G = parseInt(document.getElementById("G" + j).value);
+      B = parseInt(document.getElementById("B" + j).value);
 
-      //uppdt curr values
-      //curr = curr.slice(0,-1) + widgetCount; (tar bort sista värdet om de är)
-    }
+      fadeLength = Math.round(((b - a) - cd) / 2); //Length of fading area, round so we get int values for c&d
+      c = a + fadeLength //Position of c
+      d = b - fadeLength; //Position of d
+      step = height / fadeLength; //Step value for fade area
 
-    //Fade from 0 to colour in interval [a,c]
-    var op = 0;
-    for (let i = a * 4; i < c * 4; i += 4) {
-      data[i] = R;
-      data[i + 1] = G;
-      data[i + 2] = B;
-      data[i + 3] = op;
-      op += step;
-    }
+      //Fade from 0 to colour in interval [a,c]
+      var op = 0;
+      for (let i = a * 4; i < c * 4; i += 4) {
+        data[i] = R;
+        data[i + 1] = G;
+        data[i + 2] = B;
+        data[i + 3] = op;
+        op += step;
+      }
 
-    //Constant colour in interval [c,d] 
-    for (let i = c * 4; i < d * 4; i += 4) {
-      data[i] = R;
-      data[i + 1] = G;
-      data[i + 2] = B;
-      data[i + 3] = height;
-    }
+      //Constant colour in interval [c,d] 
+      for (let i = c * 4; i < d * 4; i += 4) {
+        data[i] = R;
+        data[i + 1] = G;
+        data[i + 2] = B;
+        data[i + 3] = height;
+      }
 
-    //Fade from colour to 0 in interval [d,b]
-    op = height;
-    for (let i = d * 4; i < b * 4; i += 4) {
-      data[i] = R;
-      data[i + 1] = G;
-      data[i + 2] = B;
-      data[i + 3] = op;
-      op -= step;
+      //Fade from colour to 0 in interval [d,b]
+      op = height;
+      for (let i = d * 4; i < b * 4; i += 4) {
+        data[i] = R;
+        data[i + 1] = G;
+        data[i + 2] = B;
+        data[i + 3] = op;
+        op -= step;
+      }
+
     }
 
     // Upload the new data to the texture
@@ -802,7 +747,6 @@
       gl.uniform1i(gl.getUniformLocation(program, "compositingMethod"), 2);
     }
 
-
     // Trigger the volume rendering by rendering the 2 triangles (= 6 vertices) that/
     // comprise the screen-aligned quad.  The positions of the vertices are hard-coded in
     // the shader, so there is no need to worry about vertex buffer objects
@@ -934,7 +878,6 @@
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-
     //
     //   Load the volume data
     //
@@ -979,7 +922,6 @@
         convertedData[i] = typedData[i] / 4096.0 * 256.0
       }
 
-      //console.log(convertedData);
 
       // The volume size also comes from the available meta data for the pig.raw
       // if you want to have a look at the metadata, the pig.dat contains that
@@ -1107,17 +1049,24 @@
   // FORGET to call this function if you are updating the transfer function or your changes
   // won't be visible.
   function triggerTransferFunctionUpdate() {
+
+    //Print error msg
     const elementId = event.target.id;
     const widgetNr = elementId.slice(-1);
-    var widthT = document.getElementById("cd" + widgetNr ).value;
-    const widthB = document.getElementById("b" + widgetNr).value - document.getElementById("a" + widgetNr).value;
+    const widthT = document.getElementById("cd" + widgetNr ).value;
+    const posA = document.getElementById("a" + widgetNr).value;
+    const posB = document.getElementById("b" + widgetNr).value;
 
     document.getElementById("errorMessage").innerHTML = "";
 
-    if (widthT > widthB){
+    if (widthT > (posB - posA)){
       //write out error message to web page that widthT mus be smaller than widthB
       document.getElementById("errorMessage").innerHTML = "Error: c-d width must be smaller for Widget #" + widgetNr;
     }
+
+    // //Plot widget on canvas
+    // const editork = document.getElementById("WidgetVis");
+    // const ctx = editork.getContext("2d");
 
     TransferFunctionIsDirty = true;
   }
@@ -1152,7 +1101,6 @@
     //Update name of new widget
     document.getElementById("name" + widgetCount).innerHTML = "Widget #" + widgetCount;
   }
-
 
 </script>
 
@@ -1197,7 +1145,8 @@
     <div id="widgetContainer" style="width: 50%; height: 150px; float: right;">
       
       <h2>Transfer function control</h2>
-      <button style=" padding: 5px" onclick="addNewWidget()">Add Widget</button>
+      <!-- <canvas id="WidgetVis" width="525" height="250" style="border: 1px solid black; background-color:grey opacity: 0.5;"></canvas></br> -->
+      <button style="margin: 5px; padding: 5px" onclick="addNewWidget()">Add Widget</button>
       
       <div class="widget">
         
