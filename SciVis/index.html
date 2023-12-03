@@ -254,7 +254,7 @@
       // Sample the volume at the sampling position.  The volume we are looking at is a
       // scalar volume, so it only has a single value, which we extract here from the r
       // component
-      float value = texture(volume, sampleCoord).r; //Varför röda komponenten
+      float value = texture(volume, sampleCoord).r;
 
       // Feed the value through the transfer function.  The 0.5 here is a crux as WebGL2
       // does not support 1D textures, so we need to choose a coordinate for the second
@@ -279,7 +279,7 @@
           //   @TODO: Implement the front-to-back compositing here
           //
 
-          /* 
+          /*
               Formula for front to back compositing is given by C'i = (1 - A'i-1) * Ci * Ai + C'i-1
                                                             and A'i = (1 - A'i-1) * Ai + A'i-1
 
@@ -404,7 +404,6 @@
     }
   }
 `;
-
 
   /// This function creates an OpenGL program object from the provided vertex and fragment
   /// sources.  If the creation of the OpenGL shader objects or the OpenGL program object
@@ -1063,10 +1062,6 @@
       //write out error message to web page that widthT mus be smaller than widthB
       document.getElementById("errorMessage").innerHTML = "Error: c-d width must be smaller for Widget #" + widgetNr;
     }
-
-    // //Plot widget on canvas
-    // const editork = document.getElementById("WidgetVis");
-    // const ctx = editork.getContext("2d");
 
     TransferFunctionIsDirty = true;
   }
